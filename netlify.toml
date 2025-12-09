@@ -1,0 +1,9 @@
+[build]
+  # Run builds from the actual project folder
+  base = "pulse-seo-suite-main"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Ensure a modern Node version compatible with Vite 5+
+  NODE_VERSION = "20"
