@@ -103,6 +103,14 @@ export default function Admin() {
       
       if (settings) {
         setSiteSettings(settings);
+      } else {
+        // Initialize with default values if no settings exist in database
+        setSiteSettings({
+          id: '',
+          site_name: '',
+          logo_url: null,
+          primary_color: '#2563EB',
+        });
       }
 
       const { data: profiles } = await supabase
@@ -142,17 +150,38 @@ export default function Admin() {
 
   const handleSaveSettings = async () => {
     if (!siteSettings) return;
-    
+
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('site_settings')
-        .update({
-          site_name: siteSettings.site_name,
-          logo_url: siteSettings.logo_url,
-          primary_color: siteSettings.primary_color,
-        })
-        .eq('id', siteSettings.id);
+      let error;
+
+      if (siteSettings.id) {
+        // Update existing settings
+        const result = await supabase
+          .from('site_settings')
+          .update({
+            site_name: siteSettings.site_name,
+            logo_url: siteSettings.logo_url,
+            primary_color: siteSettings.primary_color,
+          })
+          .eq('id', siteSettings.id);
+        error = result.error;
+      } else {
+        // Create new settings
+        const result = await supabase
+          .from('site_settings')
+          .insert({
+            site_name: siteSettings.site_name,
+            logo_url: siteSettings.logo_url,
+            primary_color: siteSettings.primary_color,
+          })
+          .select()
+          .single();
+        error = result.error;
+        if (result.data) {
+          setSiteSettings(result.data);
+        }
+      }
 
       if (error) throw error;
 
