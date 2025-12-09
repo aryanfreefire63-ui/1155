@@ -193,8 +193,14 @@ export function DashboardConfigProvider({ children }: { children: ReactNode }) {
     try {
       const { error } = await supabase
         .from('dashboard_config')
-        .update({ config_value: value as Json })
-        .eq('config_key', key);
+        .upsert(
+          {
+            config_key: key,
+            config_value: value as Json,
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'config_key' }
+        );
 
       if (error) throw error;
 
